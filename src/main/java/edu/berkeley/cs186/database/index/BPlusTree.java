@@ -1,5 +1,15 @@
 package edu.berkeley.cs186.database.index;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import edu.berkeley.cs186.database.TransactionContext;
 import edu.berkeley.cs186.database.common.Pair;
 import edu.berkeley.cs186.database.concurrency.LockContext;
@@ -10,11 +20,6 @@ import edu.berkeley.cs186.database.databox.Type;
 import edu.berkeley.cs186.database.io.DiskSpaceManager;
 import edu.berkeley.cs186.database.memory.BufferManager;
 import edu.berkeley.cs186.database.table.RecordId;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.*;
 
 /**
  * A persistent B+ tree.
@@ -146,8 +151,29 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): implement
+        root.getPage();
+        LeafNode l = null;
+        if ( root instanceof  InnerNode){
 
-        return Optional.empty();
+             l = root.get(key);
+        }else if( root instanceof LeafNode) {
+          l= (LeafNode) root;
+        }
+        int index=-1;
+        int i=0;
+        if (l==null){
+            return Optional.empty();
+        }
+        for (i=0; i< l.getKeys().size();i++){
+            if (key.compareTo(( l).getKeys().get(i))==0){
+                index=i;
+            }
+
+        }
+        if (index ==-1){
+            return Optional.empty();
+        }
+        return Optional.of((l).getRids().get(index));
     }
 
     /**

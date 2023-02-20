@@ -1,5 +1,13 @@
 package edu.berkeley.cs186.database.index;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import edu.berkeley.cs186.database.common.Buffer;
 import edu.berkeley.cs186.database.common.Pair;
 import edu.berkeley.cs186.database.concurrency.LockContext;
@@ -8,9 +16,6 @@ import edu.berkeley.cs186.database.databox.Type;
 import edu.berkeley.cs186.database.memory.BufferManager;
 import edu.berkeley.cs186.database.memory.Page;
 import edu.berkeley.cs186.database.table.RecordId;
-
-import java.nio.ByteBuffer;
-import java.util.*;
 
 /**
  * A inner node of a B+ tree. Every inner node in a B+ tree of order d stores
@@ -81,8 +86,21 @@ class InnerNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
+        int index=-1;
+        int i=0;
+        for (i=0; i<keys.size();i++){
+            if (key.compareTo(keys.get(i))<0){
+                index=i;
+                break;
+            }
 
-        return null;
+        }
+        if (index ==-1){
+            index=i;
+        }
+        long pageNum = children.get(index);
+
+        return LeafNode.fromBytes(metadata, bufferManager, treeContext, pageNum);
     }
 
     // See BPlusNode.getLeftmostLeaf.
@@ -90,8 +108,9 @@ class InnerNode extends BPlusNode {
     public LeafNode getLeftmostLeaf() {
         assert(children.size() > 0);
         // TODO(proj2): implement
+        long pageNum = children.get(0);
 
-        return null;
+        return LeafNode.fromBytes(metadata, bufferManager, treeContext, pageNum);
     }
 
     // See BPlusNode.put.
@@ -115,7 +134,9 @@ class InnerNode extends BPlusNode {
     @Override
     public void remove(DataBox key) {
         // TODO(proj2): implement
-
+       LeafNode leafNode=get(key);
+       leafNode.remove(key);
+//       sync();
         return;
     }
 
