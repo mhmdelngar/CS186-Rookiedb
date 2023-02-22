@@ -86,21 +86,31 @@ class InnerNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
-        int index=-1;
-        int i=0;
-        for (i=0; i<keys.size();i++){
-            if (key.compareTo(keys.get(i))<0){
-                index=i;
+        int left = 0;
+        int right = keys.size() - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            if (keys.get(mid).compareTo(key) == 0) {
+                left=mid+1;
                 break;
+            } else if (keys.get(mid).compareTo(key) < 0) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
             }
-
         }
-        if (index ==-1){
-            index=i;
-        }
-        long pageNum = children.get(index);
 
-        return LeafNode.fromBytes(metadata, bufferManager, treeContext, pageNum);
+        // If candidate is not found in the array
+
+        long pageNum = children.get(left);
+       BPlusNode bPlusNode=BPlusNode.fromBytes(metadata, bufferManager, treeContext, pageNum);
+               if(bPlusNode instanceof InnerNode){
+                   return bPlusNode.get(key);
+               }else {
+                   return (LeafNode) bPlusNode;
+               }
     }
 
     // See BPlusNode.getLeftmostLeaf.
@@ -117,8 +127,89 @@ class InnerNode extends BPlusNode {
     @Override
     public Optional<Pair<DataBox, Long>> put(DataBox key, RecordId rid) {
         // TODO(proj2): implement
+        int left1 = 0;
+        int right1 = keys.size() - 1;
 
-        return Optional.empty();
+        while (left1 <= right1) {
+            int mid = left1 + (right1 - left1) / 2;
+
+            if (keys.get(mid).compareTo(key) == 0) {
+                left1 = mid + 1;
+                break;
+            } else if (keys.get(mid).compareTo(key) < 0) {
+                left1 = mid + 1;
+            } else {
+                right1 = mid - 1;
+            }
+        }
+
+        // If candidate is not found in the array
+
+        long pageNum = children.get(left1);
+        BPlusNode bPlusNode = BPlusNode.fromBytes(metadata, bufferManager, treeContext, pageNum);
+        Optional<Pair<DataBox, Long>> pair = bPlusNode.put(key, rid);
+
+
+            if (pair.isEmpty()) {
+                return Optional.empty();
+            }
+            else {
+                DataBox returnedKey = pair.get().getFirst();
+                Long returnedPageNumber = pair.get().getSecond();
+                int left = 0;
+                int right = keys.size() - 1;
+
+                while (left <= right) {
+                    int mid = left + (right - left) / 2;
+
+                    if (keys.get(mid).compareTo(returnedKey) == 0) {
+                        return Optional.empty();
+                    } else if (keys.get(mid).compareTo(returnedKey) < 0) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+
+                // If candidate is not found in the array
+                keys.add(left, returnedKey);
+                children.add(left+1, returnedPageNumber);
+                System.out.println(returnedKey+"return");
+                if (keys.size() <= 2 * metadata.getOrder()) {
+                    System.out.println(keys+"empty");
+
+                    sync();
+                    return Optional.empty();
+                } else {
+                    List<DataBox> keys1 = new ArrayList<>();
+                    List<Long> children1 = new ArrayList<>();
+                    int i;
+                    for ( i = metadata.getOrder(); i <= 2 * metadata.getOrder(); i++) {
+                        keys1.add(keys.get(i));
+                        children1.add(children.get(i));
+                    }
+                    children1.add(children.get(i));
+
+                    keys =keys.subList(0,metadata.getOrder());
+                    children =children.subList(0,metadata.getOrder()+1);
+                    DataBox movedKey = keys1.get(0);
+
+                    System.out.println(children1);
+                    System.out.println(keys1);
+                    keys1.remove(0);
+                    children1.remove(0);
+
+                    InnerNode innerNode = new InnerNode(metadata, bufferManager, keys1,
+                            children1, treeContext);
+                    sync();
+                    return Optional.of(new Pair(movedKey, innerNode.page.getPageNum()));
+                }
+
+//             return pair;
+        }
+//        LeafNode leafNode=get(key);
+
+
     }
 
     // See BPlusNode.bulkLoad.
@@ -153,6 +244,8 @@ class InnerNode extends BPlusNode {
 
     private void sync() {
         page.pin();
+//        System.out.println(children);
+//        System.out.println(keys);
         try {
             Buffer b = page.getBuffer();
             byte[] newBytes = toBytes();

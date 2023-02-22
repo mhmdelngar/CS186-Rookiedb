@@ -151,7 +151,7 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): implement
-        root.getPage();
+
         LeafNode l = null;
         if ( root instanceof  InnerNode){
 
@@ -160,7 +160,7 @@ public class BPlusTree {
           l= (LeafNode) root;
         }
         int index=-1;
-        int i=0;
+        int i;
         if (l==null){
             return Optional.empty();
         }
@@ -283,10 +283,40 @@ public class BPlusTree {
         // Note: You should NOT update the root variable directly.
         // Use the provided updateRoot() helper method to change
         // the tree's root if the old root splits.
+//        root.getPage().getPageNum();
+//        if ( root instanceof  InnerNode){
+            BPlusNode innerNode =root.fromBytes(metadata,bufferManager,lockContext,root.getPage().getPageNum());
+            System.out.println("added key"+key);;
+            Optional<Pair<DataBox, Long>> optionalPair = innerNode.put(key, rid);
+            if (optionalPair.isPresent()){
+                List<Long>children=new ArrayList<>();
+                List<DataBox>keys=new ArrayList<>();
+
+                keys.add(optionalPair.get().getFirst());
+                children.add(innerNode.getPage().getPageNum());
+                children.add(optionalPair.get().getSecond());
+
+                BPlusNode bPlusNode = new InnerNode(metadata,bufferManager,keys,children,lockContext);
+                updateRoot(bPlusNode);
+
+            }else {
+                root=innerNode;
+            }
+            print(root);
 
         return;
     }
+public void print(BPlusNode bPlusNode){
+        if (bPlusNode instanceof  LeafNode){
+            System.out.println(((LeafNode) bPlusNode).getKeys());
+            return;
+        }
+    System.out.println(((InnerNode) bPlusNode).getKeys());
 
+    for (int i = 0; i < ((InnerNode) bPlusNode).getChildren().size(); i++){
+      print(BPlusNode.fromBytes(metadata, bufferManager, lockContext, ((InnerNode) bPlusNode).getChildren().get(i)));
+    }
+}
     /**
      * Bulk loads data into the B+ tree. Tree should be empty and the data
      * iterator should be in sorted order (by the DataBox key field) and
@@ -334,6 +364,8 @@ public class BPlusTree {
 
         // TODO(proj2): implement
 
+      LeafNode leafNode= root.get(key);
+      leafNode.remove(key);
         return;
     }
 

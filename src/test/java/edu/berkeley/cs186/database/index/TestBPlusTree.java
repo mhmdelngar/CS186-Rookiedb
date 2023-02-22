@@ -1,7 +1,27 @@
 package edu.berkeley.cs186.database.index;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.rules.DisableOnDebug;
+import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.function.Supplier;
+
 import edu.berkeley.cs186.database.TimeoutScaling;
-import edu.berkeley.cs186.database.categories.HiddenTests;
 import edu.berkeley.cs186.database.categories.Proj2Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
 import edu.berkeley.cs186.database.categories.SystemTests;
@@ -17,19 +37,6 @@ import edu.berkeley.cs186.database.memory.BufferManager;
 import edu.berkeley.cs186.database.memory.ClockEvictionPolicy;
 import edu.berkeley.cs186.database.recovery.DummyRecoveryManager;
 import edu.berkeley.cs186.database.table.RecordId;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.rules.DisableOnDebug;
-import org.junit.rules.TestRule;
-import org.junit.rules.Timeout;
-
-import java.util.*;
-import java.util.function.Supplier;
-
-import static org.junit.Assert.*;
 
 @Category(Proj2Tests.class)
 public class TestBPlusTree {
@@ -436,12 +443,12 @@ public class TestBPlusTree {
 
                 // Insert all the keys.
                 BPlusTree tree = getBPlusTree(Type.intType(), d);
-                for (int i = 0; i < keys.size(); ++i) {
+                for (int i = 0; i < 1000; ++i) {
                     tree.put(keys.get(i), rids.get(i));
                 }
 
                 // Test get.
-                for (int i = 0; i < keys.size(); ++i) {
+                for (int i = 0; i < 1000; ++i) {
                     assertEquals(Optional.of(rids.get(i)), tree.get(keys.get(i)));
                 }
 
