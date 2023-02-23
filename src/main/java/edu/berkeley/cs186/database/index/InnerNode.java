@@ -119,8 +119,16 @@ class InnerNode extends BPlusNode {
         assert(children.size() > 0);
         // TODO(proj2): implement
         long pageNum = children.get(0);
+     BPlusNode bPlusNode=BPlusNode.fromBytes(metadata, bufferManager, treeContext, pageNum);
+//     while (bPlusNode instanceof InnerNode){
+//         long pageNum1 = children.get(0);
+//          bPlusNode=BPlusNode.fromBytes(metadata, bufferManager, treeContext, pageNum1);
+//     }
+        if (bPlusNode instanceof InnerNode){
+            return  bPlusNode.getLeftmostLeaf();
+        }
 
-        return LeafNode.fromBytes(metadata, bufferManager, treeContext, pageNum);
+        return (LeafNode) bPlusNode;
     }
 
     // See BPlusNode.put.
@@ -193,9 +201,6 @@ class InnerNode extends BPlusNode {
                     keys =keys.subList(0,metadata.getOrder());
                     children =children.subList(0,metadata.getOrder()+1);
                     DataBox movedKey = keys1.get(0);
-
-                    System.out.println(children1);
-                    System.out.println(keys1);
                     keys1.remove(0);
                     children1.remove(0);
 
@@ -217,8 +222,50 @@ class InnerNode extends BPlusNode {
     public Optional<Pair<DataBox, Long>> bulkLoad(Iterator<Pair<DataBox, RecordId>> data,
             float fillFactor) {
         // TODO(proj2): implement
+//
+        BPlusNode bPlusNode =BPlusNode.fromBytes(metadata,bufferManager,treeContext,children.get(children.size()-1));
 
-        return Optional.empty();
+        Optional<Pair<DataBox, Long>> pair= bPlusNode.bulkLoad(data,fillFactor);
+        System.out.println(pair);
+        if (pair.isEmpty()){
+
+            return  Optional.empty();
+        }
+        keys.add( pair.get().getFirst());
+        children.add( pair.get().getSecond());
+
+        if (keys.size() <= 2 * metadata.getOrder()) {
+            System.out.println(keys+"empty");
+
+            sync();
+            if (data.hasNext()){
+                System.out.println("here");
+                return bulkLoad(data,fillFactor);
+            }
+            return Optional.empty();
+        } else {
+            List<DataBox> keys1 = new ArrayList<>();
+            List<Long> children1 = new ArrayList<>();
+            int i;
+            for ( i = metadata.getOrder(); i <= 2 * metadata.getOrder(); i++) {
+                keys1.add(keys.get(i));
+                children1.add(children.get(i));
+            }
+            children1.add(children.get(i));
+
+            keys =keys.subList(0,metadata.getOrder());
+            children =children.subList(0,metadata.getOrder()+1);
+            DataBox movedKey = keys1.get(0);
+            keys1.remove(0);
+            children1.remove(0);
+
+            InnerNode innerNode = new InnerNode(metadata, bufferManager, keys1,
+                    children1, treeContext);
+            sync();
+            return Optional.of(new Pair(movedKey, innerNode.page.getPageNum()));
+        }
+
+//        return Optional.empty();
     }
 
     // See BPlusNode.remove.
