@@ -24,7 +24,9 @@ My implementation for each project is in the corresponding branch as follows (yo
 | [Project 4: Concurrency](https://cs186.gitbook.io/project/assignments/proj4)                  | concurrency | 
 | [Project 5: Recovery](https://cs186.gitbook.io/project/assignments/proj5)                     | recovery | 
 
-finished project 2 still working on other projects 
+## finished project 2 still working on other projects 
+
+
 To start your Rookiedb projects journey, first clone the skeleton code (i.e. master branch) , then follow the instruction below to set up your local development environment. When you  start one specific project, you can create a new branch from master then implement it to keep your code tree clean. 
 
 ## Setting up your local development environment
