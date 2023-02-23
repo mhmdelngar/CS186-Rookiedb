@@ -20,10 +20,11 @@ My implementation for each project is in the corresponding branch as follows (yo
 |-----------------------------------------------------------------------------------------------|---------------------|
 | Skeleton code                                                | Master          |
 | [Project 2: B+ Trees](https://cs186.gitbook.io/project/assignments/proj2)                     | b_plus_tree | finished
-| [Project 3: Joins and Query Optimization](https://cs186.gitbook.io/project/assignments/proj3) | join_query_opt | still working on it
-| [Project 4: Concurrency](https://cs186.gitbook.io/project/assignments/proj4)                  | concurrency | still working on it
-| [Project 5: Recovery](https://cs186.gitbook.io/project/assignments/proj5)                     | recovery | still working on it
+| [Project 3: Joins and Query Optimization](https://cs186.gitbook.io/project/assignments/proj3) | join_query_opt |
+| [Project 4: Concurrency](https://cs186.gitbook.io/project/assignments/proj4)                  | concurrency | 
+| [Project 5: Recovery](https://cs186.gitbook.io/project/assignments/proj5)                     | recovery | 
 
+finished project 2 still working on other projects 
 To start your Rookiedb projects journey, first clone the skeleton code (i.e. master branch) , then follow the instruction below to set up your local development environment. When you  start one specific project, you can create a new branch from master then implement it to keep your code tree clean. 
 
 ## Setting up your local development environment
