@@ -1,13 +1,13 @@
 package edu.berkeley.cs186.database.query.join;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import edu.berkeley.cs186.database.TransactionContext;
 import edu.berkeley.cs186.database.common.iterator.BacktrackingIterator;
 import edu.berkeley.cs186.database.query.JoinOperator;
 import edu.berkeley.cs186.database.query.QueryOperator;
 import edu.berkeley.cs186.database.table.Record;
-
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * Performs an equijoin between two relations on leftColumnName and
@@ -40,7 +40,7 @@ public class BNLJOperator extends JoinOperator {
         int numLeftPages = getLeftSource().estimateStats().getNumPages();
         int numRightPages = getRightSource().estimateIOCost();
         return ((int) Math.ceil((double) numLeftPages / (double) usableBuffers)) * numRightPages +
-               getLeftSource().estimateIOCost();
+                getLeftSource().estimateIOCost();
     }
 
     /**
@@ -48,7 +48,7 @@ public class BNLJOperator extends JoinOperator {
      * Look over the implementation in SNLJOperator if you want to get a feel
      * for the fetchNextRecord() logic.
      */
-    private class BNLJIterator implements Iterator<Record>{
+    private class BNLJIterator implements Iterator<Record> {
         // Iterator over all the records of the left source
         private Iterator<Record> leftSourceIterator;
         // Iterator over all the records of the right source
@@ -79,41 +79,99 @@ public class BNLJOperator extends JoinOperator {
          * leftBlockIterator should be set to a backtracking iterator over up to
          * B-2 pages of records from the left source, and leftRecord should be
          * set to the first record in this block.
-         *
+         * <p>
          * If there are no more records in the left source, this method should
          * do nothing.
-         *
+         * <p>
          * You may find QueryOperator#getBlockIterator useful here.
          */
         private void fetchNextLeftBlock() {
-            // TODO(proj3_part1): implement
+            leftBlockIterator = QueryOperator.getBlockIterator(leftSourceIterator, getLeftSource().getSchema(), numBuffers - 2);
+            if (leftBlockIterator.hasNext()) {
+                leftBlockIterator.markNext();
+                leftRecord = leftBlockIterator.next();
+            }
         }
 
         /**
          * Fetch the next page of records from the right source.
          * rightPageIterator should be set to a backtracking iterator over up to
          * one page of records from the right source.
-         *
+         * <p>
          * If there are no more records in the right source, this method should
          * do nothing.
-         *
+         * <p>
          * You may find QueryOperator#getBlockIterator useful here.
          */
         private void fetchNextRightPage() {
             // TODO(proj3_part1): implement
+            rightPageIterator = QueryOperator.getBlockIterator(rightSourceIterator, getRightSource().getSchema(), 1);
+            if (rightPageIterator.hasNext()) {
+                rightPageIterator.markNext();
+            }
+
+            return;
         }
 
         /**
          * Returns the next record that should be yielded from this join,
          * or null if there are no more records to join.
-         *
+         * <p>
          * You may find JoinOperator#compare useful here. (You can call compare
          * function directly from this file, since BNLJOperator is a subclass
          * of JoinOperator).
          */
+
         private Record fetchNextRecord() {
             // TODO(proj3_part1): implement
-            return null;
+//            return null;
+            if (leftSourceIterator == null) {
+                // The left source was empty, nothing to fetch
+                return null;
+            }
+            while (true) {
+                if (rightPageIterator.hasNext()) {
+                    Record right = rightPageIterator.next();
+                    if (compare(leftRecord, right) == 0) {
+                        return leftRecord.concat(right);
+                    }
+                    ;
+                } else if (leftBlockIterator.hasNext()) {
+                    leftRecord = leftBlockIterator.next();
+                    rightPageIterator.reset();
+                } else if (fetchNextPageRight()) {
+                    leftBlockIterator.reset();
+                    leftRecord = leftBlockIterator.next();
+
+                } else if (fetchNextBlockLeft()) {
+                    rightSourceIterator.reset();
+                    fetchNextRightPage();
+                } else {
+                    return null;
+                }
+
+
+            }
+        }
+
+        private boolean fetchNextPageRight() {
+
+            if (rightSourceIterator.hasNext()) {
+                fetchNextRightPage();
+                return rightPageIterator.hasNext();
+            } else {
+                return false;
+            }
+        }
+
+        private boolean fetchNextBlockLeft() {
+
+            if (leftSourceIterator.hasNext()) {
+                fetchNextLeftBlock();
+                return leftBlockIterator.hasNext();
+            } else {
+                return false;
+            }
         }
 
         /**

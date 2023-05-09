@@ -1,18 +1,9 @@
 package edu.berkeley.cs186.database.query;
 
-import edu.berkeley.cs186.database.Database;
-import edu.berkeley.cs186.database.TestUtils;
-import edu.berkeley.cs186.database.TimeoutScaling;
-import edu.berkeley.cs186.database.Transaction;
-import edu.berkeley.cs186.database.categories.*;
-import edu.berkeley.cs186.database.concurrency.DummyLockContext;
-import edu.berkeley.cs186.database.databox.*;
-import edu.berkeley.cs186.database.io.DiskSpaceManager;
-import edu.berkeley.cs186.database.memory.Page;
-import edu.berkeley.cs186.database.query.join.BNLJOperator;
-import edu.berkeley.cs186.database.query.join.PNLJOperator;
-import edu.berkeley.cs186.database.query.join.SNLJOperator;
-import edu.berkeley.cs186.database.table.Record;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,9 +16,33 @@ import org.junit.rules.Timeout;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.*;
+import edu.berkeley.cs186.database.Database;
+import edu.berkeley.cs186.database.TestUtils;
+import edu.berkeley.cs186.database.TimeoutScaling;
+import edu.berkeley.cs186.database.Transaction;
+import edu.berkeley.cs186.database.categories.Proj3Part1Tests;
+import edu.berkeley.cs186.database.categories.Proj3Tests;
+import edu.berkeley.cs186.database.categories.PublicTests;
+import edu.berkeley.cs186.database.categories.SystemTests;
+import edu.berkeley.cs186.database.concurrency.DummyLockContext;
+import edu.berkeley.cs186.database.databox.BoolDataBox;
+import edu.berkeley.cs186.database.databox.DataBox;
+import edu.berkeley.cs186.database.databox.FloatDataBox;
+import edu.berkeley.cs186.database.databox.IntDataBox;
+import edu.berkeley.cs186.database.databox.StringDataBox;
+import edu.berkeley.cs186.database.io.DiskSpaceManager;
+import edu.berkeley.cs186.database.memory.Page;
+import edu.berkeley.cs186.database.query.join.BNLJOperator;
+import edu.berkeley.cs186.database.query.join.PNLJOperator;
+import edu.berkeley.cs186.database.query.join.SNLJOperator;
+import edu.berkeley.cs186.database.table.Record;
 
 @Category({Proj3Tests.class, Proj3Part1Tests.class})
 public class TestNestedLoopJoin {
@@ -513,6 +528,7 @@ public class TestNestedLoopJoin {
             int count = 0;
             while (outputIterator.hasNext() && count < 4 * 200 * 200) {
                 Record r = outputIterator.next();
+//                System.out.println(r);
                 if (count < 200 * 200) {
                     assertEquals("mismatch at record " + count, expectedRecord3, r);
                 } else if (count < 2 * 200 * 200) {
