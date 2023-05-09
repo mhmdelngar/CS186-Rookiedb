@@ -1,5 +1,10 @@
 package edu.berkeley.cs186.database.query.join;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import edu.berkeley.cs186.database.TransactionContext;
 import edu.berkeley.cs186.database.common.iterator.BacktrackingIterator;
 import edu.berkeley.cs186.database.query.JoinOperator;
@@ -8,11 +13,6 @@ import edu.berkeley.cs186.database.query.QueryOperator;
 import edu.berkeley.cs186.database.query.SortOperator;
 import edu.berkeley.cs186.database.table.Record;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-
 public class SortMergeOperator extends JoinOperator {
     public SortMergeOperator(QueryOperator leftSource,
                              QueryOperator rightSource,
@@ -20,8 +20,8 @@ public class SortMergeOperator extends JoinOperator {
                              String rightColumnName,
                              TransactionContext transaction) {
         super(prepareLeft(transaction, leftSource, leftColumnName),
-              prepareRight(transaction, rightSource, rightColumnName),
-              leftColumnName, rightColumnName, transaction, JoinType.SORTMERGE);
+                prepareRight(transaction, rightSource, rightColumnName),
+                leftColumnName, rightColumnName, transaction, JoinType.SORTMERGE);
         this.stats = this.estimateStats();
     }
 
@@ -75,22 +75,21 @@ public class SortMergeOperator extends JoinOperator {
 
     /**
      * An implementation of Iterator that provides an iterator interface for this operator.
-     *    See lecture slides.
-     *
+     * See lecture slides.
+     * <p>
      * Before proceeding, you should read and understand SNLJOperator.java
-     *    You can find it in the same directory as this file.
-     *
+     * You can find it in the same directory as this file.
+     * <p>
      * Word of advice: try to decompose the problem into distinguishable sub-problems.
-     *    This means you'll probably want to add more methods than those given (Once again,
-     *    SNLJOperator.java might be a useful reference).
-     *
+     * This means you'll probably want to add more methods than those given (Once again,
+     * SNLJOperator.java might be a useful reference).
      */
     private class SortMergeIterator implements Iterator<Record> {
         /**
-        * Some member variables are provided for guidance, but there are many possible solutions.
-        * You should implement the solution that's best for you, using any member variables you need.
-        * You're free to use these member variables, but you're not obligated to.
-        */
+         * Some member variables are provided for guidance, but there are many possible solutions.
+         * You should implement the solution that's best for you, using any member variables you need.
+         * You're free to use these member variables, but you're not obligated to.
+         */
         private Iterator<Record> leftIterator;
         private BacktrackingIterator<Record> rightIterator;
         private Record leftRecord;
@@ -102,8 +101,9 @@ public class SortMergeOperator extends JoinOperator {
             super();
             leftIterator = getLeftSource().iterator();
             rightIterator = getRightSource().backtrackingIterator();
+//           leftIterator= new SortOperator(getTransaction(),getLeftSource(),getLeftSource().getSchema().getFieldName(0)).sort().iterator();
+//           rightIterator= new SortOperator(getTransaction(),getRightSource(),getRightSource().getSchema().getFieldName(0)).sort().iterator();
             rightIterator.markNext();
-
             if (leftIterator.hasNext() && rightIterator.hasNext()) {
                 leftRecord = leftIterator.next();
                 rightRecord = rightIterator.next();
@@ -134,13 +134,76 @@ public class SortMergeOperator extends JoinOperator {
             return nextRecord;
         }
 
+        private boolean advanceLeft(){
+            if (leftIterator.hasNext()){
+                leftRecord = leftIterator.next();
+                return true;
+            }else{
+                return false;
+            }
+        }
+        private boolean advanceRight(){
+            if ( rightIterator.hasNext()){
+                rightRecord = rightIterator.next();
+                return true;
+
+            }else {
+                rightIterator.reset();
+                rightRecord=rightIterator.next();
+               return advanceLeft();
+
+            }
+//            return fal.se;
+        }
+
         /**
          * Returns the next record that should be yielded from this join,
          * or null if there are no more records to join.
          */
+
         private Record fetchNextRecord() {
             // TODO(proj3_part1): implement
-            return null;
+            do {
+                if (leftRecord==null){
+                    return  null;
+                }
+                if (!marked) {
+
+                    while (compare(leftRecord, rightRecord) < 0) {
+                        if (!advanceLeft()){
+                            return null;
+                        }
+
+                    }
+                    while (compare(leftRecord, rightRecord) > 0) {
+                        if ( !advanceRight()){
+                                return null;
+                        }
+                    }
+                    // mark start of “block” of S
+                    rightIterator.markPrev();
+                    marked = true;
+
+                }
+                if (compare(leftRecord, rightRecord) == 0) {
+                    Record result = leftRecord.concat(rightRecord);
+                    if ( !advanceRight()){
+                        leftRecord=null;
+                    }
+//                    System.out.println(rightIterator.hasNext());
+//                    System.out.println(result);
+                    return result;
+                } else {
+                    rightIterator.reset();
+                    rightRecord=rightIterator.next();
+                    if (!advanceLeft()){
+                        leftRecord= null;
+                    }
+                    marked = false;
+                }
+            } while (true);
+            // TODO(proj3_part1): implement
+//            return null;
         }
 
         @Override
