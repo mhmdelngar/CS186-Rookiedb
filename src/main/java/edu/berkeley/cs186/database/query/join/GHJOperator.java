@@ -174,7 +174,7 @@ public class GHJOperator extends JoinOperator {
      */
     private void run(Iterable<Record> leftRecords, Iterable<Record> rightRecords, int pass) {
         assert pass >= 1;
-        System.out.println(pass);
+
         if (pass > 5) throw new IllegalStateException("Reached the max number of passes");
 
         // Create empty partitions

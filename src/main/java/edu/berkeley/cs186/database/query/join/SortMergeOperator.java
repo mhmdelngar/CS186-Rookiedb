@@ -190,8 +190,6 @@ public class SortMergeOperator extends JoinOperator {
                     if ( !advanceRight()){
                         leftRecord=null;
                     }
-//                    System.out.println(rightIterator.hasNext());
-//                    System.out.println(result);
                     return result;
                 } else {
                     rightIterator.reset();

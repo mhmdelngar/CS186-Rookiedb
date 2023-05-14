@@ -527,8 +527,7 @@ public class TestNestedLoopJoin {
 
             int count = 0;
             while (outputIterator.hasNext() && count < 4 * 200 * 200) {
-                Record r = outputIterator.next();
-//                System.out.println(r);
+                Record r = outputIterator.next();;
                 if (count < 200 * 200) {
                     assertEquals("mismatch at record " + count, expectedRecord3, r);
                 } else if (count < 2 * 200 * 200) {
