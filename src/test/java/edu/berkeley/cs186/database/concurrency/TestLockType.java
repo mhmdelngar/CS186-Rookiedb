@@ -1,7 +1,9 @@
 package edu.berkeley.cs186.database.concurrency;
 
-import edu.berkeley.cs186.database.TimeoutScaling;
-import edu.berkeley.cs186.database.categories.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -9,10 +11,11 @@ import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import edu.berkeley.cs186.database.TimeoutScaling;
+import edu.berkeley.cs186.database.categories.Proj4Part1Tests;
+import edu.berkeley.cs186.database.categories.Proj4Tests;
+import edu.berkeley.cs186.database.categories.PublicTests;
+import edu.berkeley.cs186.database.categories.SystemTests;
 
 @Category({Proj4Tests.class, Proj4Part1Tests.class})
 public class TestLockType {
