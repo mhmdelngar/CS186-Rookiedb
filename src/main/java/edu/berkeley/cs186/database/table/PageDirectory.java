@@ -1,5 +1,8 @@
 package edu.berkeley.cs186.database.table;
 
+import java.util.NoSuchElementException;
+import java.util.Random;
+
 import edu.berkeley.cs186.database.common.Buffer;
 import edu.berkeley.cs186.database.common.ByteBuffer;
 import edu.berkeley.cs186.database.common.iterator.BacktrackingIterable;
@@ -13,9 +16,6 @@ import edu.berkeley.cs186.database.io.DiskSpaceManager;
 import edu.berkeley.cs186.database.io.PageException;
 import edu.berkeley.cs186.database.memory.BufferManager;
 import edu.berkeley.cs186.database.memory.Page;
-
-import java.util.NoSuchElementException;
-import java.util.Random;
 
 /**
  * An implementation of a heap file, using a page directory. Assumes data pages are packed (but record
@@ -115,7 +115,7 @@ public class PageDirectory implements BacktrackingIterable<Page> {
         Page page = this.firstHeader.loadPageWithSpace(requiredSpace);
         LockContext pageContext = lockContext.childContext(page.getPageNum());
         // TODO(proj4_part2): Update the following line
-        LockUtil.ensureSufficientLockHeld(pageContext, LockType.NL);
+        LockUtil.ensureSufficientLockHeld(pageContext, LockType.X);
 
         return new DataPage(pageDirectoryId, page);
     }

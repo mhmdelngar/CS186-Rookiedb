@@ -33,10 +33,12 @@ import edu.berkeley.cs186.database.common.PredicateOperator;
 import edu.berkeley.cs186.database.common.iterator.BacktrackingIterator;
 import edu.berkeley.cs186.database.concurrency.DummyLockContext;
 import edu.berkeley.cs186.database.concurrency.DummyLockManager;
+import edu.berkeley.cs186.database.concurrency.Lock;
 import edu.berkeley.cs186.database.concurrency.LockContext;
 import edu.berkeley.cs186.database.concurrency.LockManager;
 import edu.berkeley.cs186.database.concurrency.LockType;
 import edu.berkeley.cs186.database.concurrency.LockUtil;
+import edu.berkeley.cs186.database.concurrency.ResourceName;
 import edu.berkeley.cs186.database.databox.DataBox;
 import edu.berkeley.cs186.database.databox.Type;
 import edu.berkeley.cs186.database.index.BPlusTree;
@@ -947,6 +949,16 @@ public class Database implements AutoCloseable {
         public void close() {
             try {
                 // TODO(proj4_part2)
+                TransactionContext transactionContext = TransactionContext.getTransaction();
+               List<Lock> lock= lockManager.getLocks(transactionContext);
+               if (lock.size()>0){
+                LockContext lockContext=LockContext.fromResourceName(lockManager,lockManager.getLocks(transactionContext).get(0).name);
+                lockContext.getChildLocks(transactionContext);
+                releaseLocks(lockContext,transactionContext);
+//                if (lockContext.getExplicitLockType(transactionContext)!=LockType.NL)
+
+                lockContext.release(transactionContext);}
+
                 return;
             } catch (Exception e) {
                 // There's a chance an error message from your release phase
@@ -957,6 +969,7 @@ public class Database implements AutoCloseable {
                 throw e;
             }
         }
+
 
         @Override
         public String toString() {
@@ -985,6 +998,22 @@ public class Database implements AutoCloseable {
                 return name;
             } else {
                 return prefix + name;
+            }
+        }
+        void releaseLocks(LockContext lockContext,TransactionContext transactionContext){
+            List<ResourceName>resourceNames=  lockContext.getChildLocks(transactionContext);
+            System.out.println(resourceNames.size());
+            List<LockContext>lockContextList=new ArrayList<>();
+            for (ResourceName r:
+                 resourceNames) {
+                LockContext l=LockContext.fromResourceName(lockManager,r);
+                releaseLocks(l,transactionContext);
+                lockContextList.add(l);
+
+            }
+            for (LockContext lock:
+                 lockContextList) {
+                lock.release(transactionContext);
             }
         }
     }

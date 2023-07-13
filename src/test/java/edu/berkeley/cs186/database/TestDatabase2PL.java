@@ -1,13 +1,14 @@
 package edu.berkeley.cs186.database;
 
-import edu.berkeley.cs186.database.categories.Proj4Part2Tests;
-import edu.berkeley.cs186.database.categories.Proj4Tests;
-import edu.berkeley.cs186.database.categories.PublicTests;
-import edu.berkeley.cs186.database.concurrency.LoggingLockManager;
-import edu.berkeley.cs186.database.table.Record;
-import edu.berkeley.cs186.database.table.RecordId;
-import edu.berkeley.cs186.database.table.Schema;
-import org.junit.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TemporaryFolder;
@@ -15,11 +16,20 @@ import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import edu.berkeley.cs186.database.categories.Proj4Part2Tests;
+import edu.berkeley.cs186.database.categories.Proj4Tests;
+import edu.berkeley.cs186.database.categories.PublicTests;
+import edu.berkeley.cs186.database.concurrency.LoggingLockManager;
+import edu.berkeley.cs186.database.table.Record;
+import edu.berkeley.cs186.database.table.RecordId;
+import edu.berkeley.cs186.database.table.Schema;
 
 @Category({Proj4Tests.class, Proj4Part2Tests.class})
 public class TestDatabase2PL {
@@ -303,10 +313,9 @@ public class TestDatabase2PL {
     @Category(PublicTests.class)
     public void testRecordDelete() {
         String tableName = "testTable1";
-        List<RecordId> rids = createTable(tableName, 4);
 
         lockManager.startLog();
-
+        List<RecordId> rids = createTable(tableName, 4);
         try(Transaction t1 = beginTransaction()) {
             // Delete the last record in the table
             t1.getTransactionContext().deleteRecord(tableName, rids.get(rids.size() - 1));

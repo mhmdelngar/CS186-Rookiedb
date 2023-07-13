@@ -74,7 +74,10 @@ public enum LockType {
         // TODO(proj4_part1): implement
         if (substitute==required )return true;
         if (required ==LockType.S && (substitute==LockType.X||substitute==LockType.SIX))return true;
+        if (required ==LockType.IS && (substitute==LockType.S||substitute==LockType.SIX))return true;
+
         if (required==LockType.IS && substitute==LockType.IX ) return true;
+        if (required==LockType.IX && substitute==LockType.X ) return true;
         return required != LockType.X && substitute == LockType.SIX;
     }
 
