@@ -1,5 +1,9 @@
 package edu.berkeley.cs186.database.recovery.records;
 
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
+
 import edu.berkeley.cs186.database.common.Buffer;
 import edu.berkeley.cs186.database.common.ByteBuffer;
 import edu.berkeley.cs186.database.concurrency.DummyLockContext;
@@ -9,10 +13,6 @@ import edu.berkeley.cs186.database.memory.Page;
 import edu.berkeley.cs186.database.recovery.LogRecord;
 import edu.berkeley.cs186.database.recovery.LogType;
 import edu.berkeley.cs186.database.recovery.RecoveryManager;
-
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
 
 public class UndoAllocPageLogRecord extends LogRecord {
     private long transNum;

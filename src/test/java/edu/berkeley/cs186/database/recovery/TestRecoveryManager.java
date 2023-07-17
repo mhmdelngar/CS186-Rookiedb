@@ -1,16 +1,12 @@
 package edu.berkeley.cs186.database.recovery;
 
-import edu.berkeley.cs186.database.TimeoutScaling;
-import edu.berkeley.cs186.database.Transaction;
-import edu.berkeley.cs186.database.categories.HiddenTests;
-import edu.berkeley.cs186.database.categories.Proj5Tests;
-import edu.berkeley.cs186.database.categories.PublicTests;
-import edu.berkeley.cs186.database.common.Pair;
-import edu.berkeley.cs186.database.io.DiskSpaceManager;
-import edu.berkeley.cs186.database.io.DiskSpaceManagerImpl;
-import edu.berkeley.cs186.database.memory.BufferManager;
-import edu.berkeley.cs186.database.memory.LRUEvictionPolicy;
-import edu.berkeley.cs186.database.recovery.records.*;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,11 +18,38 @@ import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.function.Consumer;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import edu.berkeley.cs186.database.TimeoutScaling;
+import edu.berkeley.cs186.database.Transaction;
+import edu.berkeley.cs186.database.categories.Proj5Tests;
+import edu.berkeley.cs186.database.categories.PublicTests;
+import edu.berkeley.cs186.database.common.Pair;
+import edu.berkeley.cs186.database.io.DiskSpaceManager;
+import edu.berkeley.cs186.database.io.DiskSpaceManagerImpl;
+import edu.berkeley.cs186.database.memory.BufferManager;
+import edu.berkeley.cs186.database.memory.LRUEvictionPolicy;
+import edu.berkeley.cs186.database.recovery.records.AbortTransactionLogRecord;
+import edu.berkeley.cs186.database.recovery.records.AllocPageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.AllocPartLogRecord;
+import edu.berkeley.cs186.database.recovery.records.BeginCheckpointLogRecord;
+import edu.berkeley.cs186.database.recovery.records.CommitTransactionLogRecord;
+import edu.berkeley.cs186.database.recovery.records.EndCheckpointLogRecord;
+import edu.berkeley.cs186.database.recovery.records.EndTransactionLogRecord;
+import edu.berkeley.cs186.database.recovery.records.FreePageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.MasterLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UndoUpdatePageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UpdatePageLogRecord;
 
 @Category({Proj5Tests.class})
 public class TestRecoveryManager {
@@ -531,6 +554,7 @@ public class TestRecoveryManager {
         assertEquals(LogType.BEGIN_CHECKPOINT, beginCheckpoint.getType());
         assertEquals(LogType.END_CHECKPOINT, endCheckpoint1.getType());
         assertEquals(LogType.END_CHECKPOINT, endCheckpoint2.getType());
+
         assertFalse(logs.hasNext());
 
         // Sanity check: If we have 200 DPT entries and 52 transaction table

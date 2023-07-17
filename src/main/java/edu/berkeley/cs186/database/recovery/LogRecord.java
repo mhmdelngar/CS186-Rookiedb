@@ -1,15 +1,34 @@
 package edu.berkeley.cs186.database.recovery;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+
 import edu.berkeley.cs186.database.Transaction;
 import edu.berkeley.cs186.database.common.Buffer;
 import edu.berkeley.cs186.database.common.Pair;
 import edu.berkeley.cs186.database.io.DiskSpaceManager;
 import edu.berkeley.cs186.database.io.PageException;
 import edu.berkeley.cs186.database.memory.BufferManager;
-import edu.berkeley.cs186.database.recovery.records.*;
-
-import java.util.*;
-import java.util.function.Consumer;
+import edu.berkeley.cs186.database.recovery.records.AbortTransactionLogRecord;
+import edu.berkeley.cs186.database.recovery.records.AllocPageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.AllocPartLogRecord;
+import edu.berkeley.cs186.database.recovery.records.BeginCheckpointLogRecord;
+import edu.berkeley.cs186.database.recovery.records.CommitTransactionLogRecord;
+import edu.berkeley.cs186.database.recovery.records.EndCheckpointLogRecord;
+import edu.berkeley.cs186.database.recovery.records.EndTransactionLogRecord;
+import edu.berkeley.cs186.database.recovery.records.FreePageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.FreePartLogRecord;
+import edu.berkeley.cs186.database.recovery.records.MasterLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UndoAllocPageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UndoAllocPartLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UndoFreePageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UndoFreePartLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UndoUpdatePageLogRecord;
+import edu.berkeley.cs186.database.recovery.records.UpdatePageLogRecord;
 
 /**
  * An record of the log.
@@ -183,42 +202,24 @@ public abstract class LogRecord {
         if (type == 0) {
             return Optional.empty();
         }
-        switch (LogType.fromInt(type)) {
-        case MASTER:
-            return MasterLogRecord.fromBytes(buf);
-        case ALLOC_PAGE:
-            return AllocPageLogRecord.fromBytes(buf);
-        case UPDATE_PAGE:
-            return UpdatePageLogRecord.fromBytes(buf);
-        case FREE_PAGE:
-            return FreePageLogRecord.fromBytes(buf);
-        case ALLOC_PART:
-            return AllocPartLogRecord.fromBytes(buf);
-        case FREE_PART:
-            return FreePartLogRecord.fromBytes(buf);
-        case COMMIT_TRANSACTION:
-            return CommitTransactionLogRecord.fromBytes(buf);
-        case ABORT_TRANSACTION:
-            return AbortTransactionLogRecord.fromBytes(buf);
-        case END_TRANSACTION:
-            return EndTransactionLogRecord.fromBytes(buf);
-        case BEGIN_CHECKPOINT:
-            return BeginCheckpointLogRecord.fromBytes(buf);
-        case END_CHECKPOINT:
-            return EndCheckpointLogRecord.fromBytes(buf);
-        case UNDO_ALLOC_PAGE:
-            return UndoAllocPageLogRecord.fromBytes(buf);
-        case UNDO_UPDATE_PAGE:
-            return UndoUpdatePageLogRecord.fromBytes(buf);
-        case UNDO_FREE_PAGE:
-            return UndoFreePageLogRecord.fromBytes(buf);
-        case UNDO_ALLOC_PART:
-            return UndoAllocPartLogRecord.fromBytes(buf);
-        case UNDO_FREE_PART:
-            return UndoFreePartLogRecord.fromBytes(buf);
-        default:
-            throw new UnsupportedOperationException("bad log type");
-        }
+        return switch (LogType.fromInt(type)) {
+            case MASTER -> MasterLogRecord.fromBytes(buf);
+            case ALLOC_PAGE -> AllocPageLogRecord.fromBytes(buf);
+            case UPDATE_PAGE -> UpdatePageLogRecord.fromBytes(buf);
+            case FREE_PAGE -> FreePageLogRecord.fromBytes(buf);
+            case ALLOC_PART -> AllocPartLogRecord.fromBytes(buf);
+            case FREE_PART -> FreePartLogRecord.fromBytes(buf);
+            case COMMIT_TRANSACTION -> CommitTransactionLogRecord.fromBytes(buf);
+            case ABORT_TRANSACTION -> AbortTransactionLogRecord.fromBytes(buf);
+            case END_TRANSACTION -> EndTransactionLogRecord.fromBytes(buf);
+            case BEGIN_CHECKPOINT -> BeginCheckpointLogRecord.fromBytes(buf);
+            case END_CHECKPOINT -> EndCheckpointLogRecord.fromBytes(buf);
+            case UNDO_ALLOC_PAGE -> UndoAllocPageLogRecord.fromBytes(buf);
+            case UNDO_UPDATE_PAGE -> UndoUpdatePageLogRecord.fromBytes(buf);
+            case UNDO_FREE_PAGE -> UndoFreePageLogRecord.fromBytes(buf);
+            case UNDO_ALLOC_PART -> UndoAllocPartLogRecord.fromBytes(buf);
+            case UNDO_FREE_PART -> UndoFreePartLogRecord.fromBytes(buf);
+        };
     }
 
     /**
